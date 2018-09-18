@@ -1,0 +1,173 @@
+% 10/19/2017
+
+%Thresholding
+
+clear all;
+clc;
+
+Im = imread('Image.bmp');
+[x,y] =size(Im);
+%H = Histogram(I);
+%Initializing Variables
+Hist =zeros(1,256);
+
+%Scanning Image Pixels to create Histogram
+for i = 1:x
+        for j = 1:y
+            Hist(Im(i,j)+1)=Hist(Im(i,j)+1)+1;
+        end
+end
+bar(Hist);
+xlabel('Pixel Intensity');
+ylabel('Pixel Count');
+title('Histogram');
+
+%Scanning Image Pixels to Segment using selected Threshold
+Thresh =Im;
+for i = 1:x
+        for j = 1:y
+            if Thresh(i,j)>= 20 && Thresh(i,j)<=50
+                Thresh(i,j)=0;
+             else
+                Thresh(i,j)=255;
+             end
+        end
+end
+
+figure;
+subplot(1,2,1);
+imshow(Im);
+title('Original Image');
+subplot(1,2,2)
+imshow(Thresh);
+title('Segemented Image');
+
+%_Contrast Streching
+
+clear all;
+clc;
+
+Im = imread('Image.bmp');
+[x,y] =size(Im);
+
+%Initializing Variables
+Hist =zeros(1,256);
+CD =[]; %CDF
+
+%Scanning Image Pixels to create Histogram
+for i = 1:x
+        for j = 1:y
+            Hist(Im(i,j)+1)=Hist(Im(i,j)+1)+1;
+        end
+end
+
+%Initializing Varaibles for CDF calculation
+sum=0;Count = zeros(256,1);
+for k =1:256
+    sum = sum+Hist(k);
+    Count(k) = sum;
+    CD(k) = Count(k)/(x*y);
+end
+for c = 1:256
+   if CD(c)>=0.05
+       display(c-1);
+       break;
+   end
+end
+for d =1:256
+   if CD(d)>=0.95
+      display(d-1);
+      break;
+   end
+end
+
+Im_Stre = ((Im-c)/(d-c))*255;
+subplot(1,2,1)
+imshow(Im_Stre);
+title('Contrast Stretched');
+subplot(1,2,2)
+imshow(Im);
+title('Original Image');
+
+%Gamma Correction
+
+clear all;
+clc;
+
+Im = imread('Image.bmp');
+
+Im_D = (double(Im))/255;
+Im_Gamma = (Im_D.^0.8);
+Im_Gamma2 = (Im_D.^1.25);
+Im_Gamma = Im_Gamma*255;
+Im_Gamma2 = Im_Gamma2*255;
+Im_G = uint8(Im_Gamma);
+Im_G2 = uint8(Im_Gamma2);
+
+subplot(2,2,1);
+imshow(Im_G);
+title('Gamma = 0.8');
+subplot(2,2,2);
+imshow(Im_G2);
+title('Gamma = 1.25');
+subplot(2,2,[3,4]);
+imshow(Im);
+title('Original Image');
+
+%Histogram Equalization
+
+Im = imread('Image.bmp');
+[x,y] =size(Im);
+
+%Initializing Variables
+Hist =zeros(1,256);%Histogram
+Hist_2 =zeros(1,256); %Equalized Histogram
+P=zeros(256,1); %Probability of Pixels with Intensity K
+CD =[]; %CDF
+Cdf =[]; %CDF Mapped
+Im_EQ =uint8(zeros(x,y)); %Equalized image 
+
+
+%Scanning Image Pixels to create Histogram
+for i = 1:x
+        for j = 1:y
+            Hist(Im(i,j)+1)=Hist(Im(i,j)+1)+1;
+            P(Im(i,j)+1) = Hist(Im(i,j)+1)/(x*y);
+        end
+end
+
+% Calculating CDF distribution mapping intensities
+sum =0; L=255; Count = zeros(256,1);
+for k =1:256
+    sum = sum+Hist(k);
+    Count(k) = sum;
+    CD(k) = Count(k)/(x*y);
+    Cdf(k)= round(CD(k)*L);
+end
+
+%Creating the Histogram Equalized image
+for i=1:x
+    for j= 1:y
+        Im_EQ(i,j)= Cdf(Im(i,j)+1);
+    end
+end
+
+%Creating the equalized histogram
+for i = 1:x
+        for j = 1:y
+            Hist_2(Im_EQ(i,j)+1)=Hist_2(Im_EQ(i,j)+1)+1;
+         end
+end
+
+subplot(2,2,1)
+imshow(Im_EQ);
+title('Histogram Equalized');
+subplot(2,2,2)
+imshow(Im);
+title('Original Image');
+subplot(2,2,3)
+bar(Hist_2);
+title('New Histogram');
+subplot(2,2,4)
+bar(Hist);
+title('Original Histogram');
